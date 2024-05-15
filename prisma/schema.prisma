@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  content    String
+  published  Boolean   @default(false)
+  slug       String    @unique
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  authorId   String    @db.ObjectId
+  author     User      @relation(fields: [authorId], references: [id]) // setting relationship with User
+  categoryId String    @db.ObjectId
+  category   Category  @relation(fields: [categoryId], references: [id])
+  // @@index([authorId], map: "Post_authorId_fkey")
+}
+
+model Category {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String    @unique
+  slug      String    @unique
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  posts     Post[]
+}
+
+model User {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  email          String    @unique
+  username       String    @unique
+  fullName       String
+  password       String
+  avatarUrl      String?
+  lastLoggedInAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+  roleId         String    @db.ObjectId
+  role           Role      @relation(fields: [roleId], references: [id]) //setting relationship with Role
+  posts          Post[]
+}
+
+model Role {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String    @unique
+  role      String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  users     User[]
+}
